@@ -1,0 +1,585 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dely's Pizza — ¡Sabor que Enamora!</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Anton&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet" />
+
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg-orange: #f36f36; /* Naranja vibrante del fondo del menú */
+      --text-orange: #f4b433; /* Amarillo/Naranja de los precios */
+      --dark-bg: #1c1c1c; /* Fondo oscuro de las tarjetas y footer */
+      --white: #ffffff;
+      --text-main: #333333;
+      --radius: 8px;
+      --wa-green: #25D366;
+      --border-color: #444; /* Borde oscuro para las tarjetas */
+      --accent: #ff4444; /* Color de acento para errores o eliminar */
+
+      --font-display: 'Anton', sans-serif; /* Fuente impactante para títulos */
+      --font-body: 'Open Sans', sans-serif; /* Fuente clara para textos */
+    }
+
+    body { font-family: var(--font-body); background: var(--bg-orange); color: var(--text-main); font-size: 15px; line-height: 1.6; }
+    
+    header {
+        position: sticky; top: 0; z-index: 100; background: var(--dark-bg);
+        border-bottom: 2px solid var(--text-orange); display: grid;
+        grid-template-columns: 1fr auto 1fr; align-items: center; padding: 0 2rem; height: 80px;
+    }
+
+    .logo { font-family: var(--font-display); font-size: 36px; color: var(--text-orange); text-decoration: none; text-transform: uppercase; }
+    
+    .cart-btn {
+        border: 2px solid var(--text-orange); padding: 10px 20px; border-radius: var(--radius);
+        cursor: pointer; display: flex; gap: 8px; background: none; color: var(--text-orange); font-weight: 700;
+        transition: all 0.3s;
+    }
+    .cart-btn:hover { background: var(--text-orange); color: var(--dark-bg); }
+
+    .hero { padding: 5rem 2rem; text-align: center; color: var(--white); background: rgba(0,0,0,0.3); } 
+    .hero h1 { font-family: var(--font-display); font-size: 56px; text-transform: uppercase; letter-spacing: 2px; }
+    .hero p { font-size: 18px; margin-top: 10px; font-weight: 600; }
+
+    .filters { display: flex; justify-content: center; gap: 1rem; padding: 1.5rem; overflow-x: auto; position: sticky; top: 80px; background: var(--white); border-bottom: 2px solid var(--border-color); z-index: 90; }
+    .filter-btn { padding: 10px 20px; border: 2px solid var(--bg-orange); border-radius: 25px; background: none; cursor: pointer; color: var(--bg-orange); font-weight: 700; text-transform: uppercase; font-size: 13px; transition: all 0.3s; }
+    .filter-btn.active, .filter-btn:hover { background: var(--bg-orange); color: var(--white); }
+
+    .products-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 2.5rem; padding: 3rem 2rem; }
+    .product-card { border: 2px solid var(--border-color); border-radius: var(--radius); overflow: hidden; background: var(--dark-bg); color: var(--white); transition: transform 0.3s; }
+    .product-card:hover { transform: translateY(-5px); }
+    .product-thumb img { width: 100%; aspect-ratio: 16/9; object-fit: cover; }
+    .product-info { padding: 2rem; text-align: center; }
+    .product-info h3 { font-family: var(--font-display); font-size: 24px; text-transform: uppercase; color: var(--white); }
+    .product-info p { font-size: 14px; color: #bbb; height: 40px; overflow: hidden; } 
+    .product-price { font-family: var(--font-display); font-size: 32px; color: var(--text-orange); margin: 15px 0; }
+
+    .btn-action { width: 100%; padding: 14px; margin-top: 10px; border-radius: var(--radius); cursor: pointer; border: none; font-weight: 700; text-transform: uppercase; font-size: 14px; transition: all 0.3s; }
+    .btn-primary { background: var(--text-orange); color: var(--dark-bg); }
+    .btn-primary:hover { background: #f6c867; } 
+    .btn-secondary { background: #333; color: var(--white); }
+    .btn-secondary:hover { background: #444; }
+
+    /* MODALES DE PERSONALIZACIÓN */
+    .modal { position: fixed; inset: 0; background: rgba(0,0,0,0.8); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 15px; }
+    .modal-content { background: var(--white); padding: 30px; border-radius: 12px; max-width: 550px; width: 100%; max-height: 90vh; overflow-y: auto; color: var(--text-main); }
+    .modal-content h2 { font-family: var(--font-display); color: var(--bg-orange); text-transform: uppercase; font-size: 28px; }
+    .option-group { margin-bottom: 25px; border-bottom: 1px solid #eee; padding-bottom: 20px; }
+    .option-group label { display: block; margin-bottom: 12px; font-weight: 700; color: var(--dark-bg); }
+    .modal-content select, .modal-content textarea { width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: var(--radius); font-family: var(--font-body); font-size: 15px; }
+    
+    /* CARRITO LATERAL (DRAWER) */
+    .drawer-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 200; display: none; }
+    .cart-drawer { position: fixed; top: 0; right: 0; bottom: 0; width: min(450px, 100vw); background: var(--dark-bg); color: var(--white); z-index: 201; transform: translateX(100%); transition: 0.3s; display: flex; flex-direction: column; border-left: 2px solid var(--text-orange); }
+    .cart-drawer.open { transform: translateX(0); }
+    .cart-drawer h3 { font-family: var(--font-display); color: var(--text-orange); text-transform: uppercase; font-size: 24px; }
+    .drawer-header { padding: 25px; border-bottom: 2px solid var(--border-color); display: flex; justify-content: space-between; align-items: center; }
+    .drawer-body { flex-grow:1; overflow-y:auto; padding:25px; }
+    .drawer-footer { padding:25px; border-top:2px solid var(--border-color); }
+    .cart-total { display:flex; justify-content:space-between; margin-bottom:20px; font-weight:700; font-size:20px; }
+    .total-price { color: var(--text-orange); font-size: 24px; font-family: var(--font-display); }
+    
+    .wa-float { position: fixed; bottom: 30px; right: 30px; background: var(--wa-green); width: 64px; height: 64px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.3s; }
+    .wa-float:hover { transform: scale(1.1); }
+    
+    footer { background: var(--dark-bg); color: #bbb; padding: 4rem 2rem; text-align: center; border-top: 2px solid var(--text-orange); }
+    footer h3 { font-family: var(--font-display); color: var(--white); text-transform: uppercase; font-size: 24px; margin-bottom: 1rem; }
+    footer p { font-size: 14px; margin-bottom: 0.5rem; }
+  </style>
+</head>
+<body>
+
+  <header>
+    <div></div>
+    <a href="#" class="logo">Dely's Pizza</a>
+    <div style="display: flex; justify-content: flex-end;">
+      <button class="cart-btn" onclick="toggleDrawer()">
+        Tu Pedido (<span id="cart-count">0</span>)
+      </button>
+    </div>
+  </header>
+
+  <section class="hero">
+    <h1>¡Sabor que Enamora!</h1>
+    <p>Pizzas artesanales, especialidades de mariscos y los mejores combos familiares.</p>
+  </section>
+
+  <nav class="filters">
+    <button class="filter-btn active" onclick="filtrar('todos', this)">Todos</button>
+    <button class="filter-btn" onclick="filtrar('especialidades', this)">Especialidades</button>
+    <button class="filter-btn" onclick="filtrar('mariscos', this)">Mariscos</button>
+    <button class="filter-btn" onclick="filtrar('combos', this)">Combos</button>
+  </nav>
+
+  <main class="products-grid" id="products-grid"></main>
+
+  <div class="modal" id="pizza-modal">
+    <div class="modal-content">
+        <h2 id="modal-title">Personalizar Pizza</h2>
+        
+        <div class="option-group">
+            <label>Tamaño y Rebanadas:</label>
+            <select id="pizza-size" onchange="updateModalPrice()">
+                <option value="chica" data-price="105">Chica (6 rebanadas) - $105</option>
+                <option value="mediana" data-price="155">Mediana (8 rebanadas) - $155</option>
+                <option value="grande" data-price="195">Grande (10 rebanadas) - $195</option>
+                <option value="familiar" data-price="240">Familiar (12 rebanadas) - $240</option>
+            </select>
+        </div>
+
+        <div class="option-group">
+            <label>Configuración:</label>
+            <select id="pizza-config" onchange="toggleMitades()">
+                <option value="completa">Toda de un solo sabor</option>
+                <option value="mitad">Mitad y Mitad</option>
+            </select>
+        </div>
+
+        <div id="mitades-select" class="option-group" style="display: none;">
+            <label>Segunda Mitad:</label>
+            <select id="second-half"></select>
+            <p id="label-extra-mitad" style="font-size: 12px; color: var(--accent); margin-top: 5px; font-weight: bold;"></p>
+        </div>
+
+        <div class="option-group" style="display: flex; align-items: center; gap: 10px;">
+            <input type="checkbox" id="pizza-crust" onchange="updateModalPrice()" style="width: 20px; height: 20px; cursor: pointer;">
+            <label for="pizza-crust" id="label-crust" style="margin-bottom: 0; cursor: pointer; font-weight: 600;">¿Agregar Orilla Rellena de Queso?</label>
+        </div>
+
+        <div class="option-group">
+            <label>Instrucciones adicionales:</label>
+            <textarea id="pizza-notes" placeholder="Ej. Bien doradita, sin cebolla..." rows="3"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+            <button class="btn-action btn-secondary" onclick="closeModal()">Cancelar</button>
+            <button class="btn-action btn-primary" onclick="confirmarPizza()">Agregar por $<span id="modal-total">0</span></button>
+        </div>
+    </div>
+  </div>
+
+  <div class="modal" id="combo-modal">
+    <div class="modal-content">
+        <h2 id="combo-modal-title">Configurar Paquete</h2>
+        <p id="combo-modal-desc" style="font-size:13px; color:#555; margin-bottom: 25px;"></p>
+        
+        <div id="combo-flavors-container"></div>
+
+        <div id="combo-crust-container" class="option-group" style="display: none; align-items: center; gap: 10px;">
+            <input type="checkbox" id="combo-crust" onchange="updateComboPrice()" style="width: 20px; height: 20px; cursor: pointer;">
+            <label for="combo-crust" id="combo-label-crust" style="margin-bottom: 0; cursor: pointer; font-weight: 600;">¿Desea agregar orilla rellena de queso?</label>
+        </div>
+
+        <div class="option-group">
+            <label>Sabor del Refresco (2 Litros):</label>
+            <select id="combo-soda">
+                <option value="Coca-Cola Original">Coca-Cola Original</option>
+                <option value="Coca-Cola Sin Azúcar">Coca-Cola Sin Azúcar</option>
+                <option value="Sprite">Sprite</option>
+                <option value="Mundet">Mundet</option>
+                <option value="Fresca">Fresca</option>
+                <option value="Fanta Naranja">Fanta Naranja</option>
+            </select>
+        </div>
+
+        <div class="option-group">
+            <label>Notas para el paquete:</label>
+            <textarea id="combo-notes" placeholder="Ej. Refresco frío, sin champiñones..." rows="3"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 15px;">
+            <button class="btn-action btn-secondary" onclick="closeComboModal()">Cancelar</button>
+            <button class="btn-action btn-primary" onclick="confirmarCombo()">Agregar por $<span id="combo-modal-total">0</span></button>
+        </div>
+    </div>
+  </div>
+
+  <div class="drawer-overlay" id="drawer-overlay" onclick="toggleDrawer()"></div>
+  <aside class="cart-drawer" id="cart-drawer">
+    <div class="drawer-header">
+        <h3>Tu Pedido</h3>
+        <button onclick="toggleDrawer()" style="border:none; background:none; font-size:24px; color: var(--text-orange); cursor:pointer;">✕</button>
+    </div>
+    <div id="drawer-body" class="drawer-body"></div>
+    <div class="drawer-footer">
+        <div class="cart-total">
+            <span>Total a pagar:</span>
+            <span id="cart-total" class="total-price">$0</span>
+        </div>
+        <button class="btn-action" style="background: var(--wa-green); color: white;" onclick="enviarPedido()">Pedir por WhatsApp</button>
+    </div>
+  </aside>
+
+  <a href="https://wa.me/529711130883" class="wa-float" target="_blank">
+    <svg width="34" height="34" fill="white" viewBox="0 0 24 24"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/></svg>
+  </a>
+
+  <footer>
+    <h3>Dely's Pizza</h3>
+    <p>Sabor que Enamora</p>
+    <p>Transistmica 299, Lomas de Galindo, Salina Cruz</p>
+    <p>971 113 0883 | 971 690 2353</p>
+    <p>Horario: 12:30 a 10:00pm</p>
+  </footer>
+
+  <script>
+    const WA_NUMBER = "529711130883";
+    const PRODUCTOS = [
+      
+    { id: 101, nombre: "Pizza Carnes Frías", precio: 105, info: "Salami, Jamón, Pepperoni, Tocino y Salchicha", imagen: "imagenes/carnes-frias.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 102, nombre: "Pizza Hawaiana", precio: 105, info: "Clásica de Jamón y Piña", imagen: "imagenes/hawaiana.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 103, nombre: "Pizza Dely Especial", precio: 105, info: "Pierna, Chile Poblano, Pollo y Chorizo", imagen: "imagenes/hawaiana.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 104, nombre: "Pizza Combinada", precio: 105, info: "Champiñón, Jamón, Salami, Cebolla, Chorizo y Pimiento Verde", imagen: "imagenes/carnes-frias.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 105, nombre: "Pizza Al Pastor", precio: 105, info: "Carne al Pastor, Cebolla, Piña y Chipotle", imagen: "imagenes/pastor.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 106, nombre: "Pizza Mexicana", precio: 105, info: "Pierna, Pollo, Jalapeño y Aguacate", imagen: "imagenes/hawaiana.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 107, nombre: "Pizza Champeroni", precio: 105, info: "Champiñón y Pepperoni", imagen: "imagenes/hawaiana.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 108, nombre: "Pizza Choriqueso", precio: 105, info: "Chorizo y Queso", imagen: "imagenes/hawaiana.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 109, nombre: "Pizza Azteca", precio: 105, info: "Frijol, Jalapeño, Cebolla y Chorizo", imagen: "imagenes/hawaiana.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 110, nombre: "Pizza Clasica", precio: 105, info: "Champiñón, Pimiento Verde y Pepperoni", imagen: "imagenes/hawaiana.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 111, nombre: "Pizza Peperoni", precio: 105, info: "Pepperoni y Queso", imagen: "imagenes/hawaiana.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 112, nombre: "Pizza Vegetariana", precio: 105, info: "Champiñón, Pimiento Verde, Cebolla, Piña y Elote", imagen: "imagenes/hawaiana.jpg", cat: "especialidades", tipo: "pizza" },
+    { id: 113, nombre: "Pizza de Camarón", precio: 130, info: "Camarón y Queso (CH: $130 GDE: $250)", imagen: "imagenes/hawaiana.jpg", cat: "mariscos", tipo: "mariscos" },
+    { id: 114, nombre: "Pizza Mar y Tierra", precio: 135, info: "Cebolla, Aceituna, Camarón y Calamar (CH: $135 GDE: $260)", imagen: "imagenes/hawaiana.jpg", cat: "mariscos", tipo: "mariscos" },
+      
+    { id: 201, nombre: "Paquete 1: Pizza Cuadrada", precio: 360, info: "Pizza Grande de 16 rebanadas (Orilla Rellena de Queso Incluida), Hasta 2 Combinaciones (Excepto Mariscos) + 1 Refresco de 2L", imagen: "imagenes/combo1.jpg", cat: "combos", tipo: "combo" },
+    { id: 202, nombre: "Paquete 2: Pizza Mega", precio: 415, info: "Pizza Grande de 24 rebanadas (Orilla Rellena de Queso Incluida), Hasta 4 Combinaciones (Excepto Mariscos) + 1 Refresco de 2L", imagen: "imagenes/combo1.jpg", cat: "combos", tipo: "combo" },    
+    { id: 203, nombre: "Paquete 3: Pizza Grande", precio: 260, info: "Pizza Grande de 10 rebanadas, Hawaiana o Pepperoni + 1 Refresco de 2L", imagen: "imagenes/combo1.jpg", cat: "combos", tipo: "combo" },
+    { id: 204, nombre: "Paquete 4: Pizza Familiar", precio: 300, info: "Pizza Familiar de 12 rebanadas, Cualquier Especialidad + 1 Refresco de 2L", imagen: "imagenes/combo1.jpg", cat: "combos", tipo: "combo" }
+    ];
+
+    let carrito = [];
+    let currentPizza = null;
+    let currentCombo = null;
+
+    function renderProducts(lista) {
+      const grid = document.getElementById("products-grid");
+      grid.innerHTML = "";
+      lista.forEach(p => {
+        const card = document.createElement("div");
+        card.className = "product-card";
+        card.innerHTML = `
+          <div class="product-thumb"><img src="${p.imagen}" onerror="this.src='https://via.placeholder.com/400?text=Pizza'"></div>
+          <div class="product-info">
+            <h3>${p.nombre}</h3>
+            <p>${p.info}</p>
+            <div class="product-price">$${p.precio}</div>
+            <button class="btn-action btn-primary" onclick="handleProductClick(${p.id})">Agregar</button>
+            <button class="btn-action btn-secondary" onclick="pedirAhora(${p.id})">Pedir ahora</button>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+    }
+
+    function handleProductClick(id) {
+        const p = PRODUCTOS.find(x => x.id === id);
+        if (p.tipo === 'pizza' || p.tipo === 'mariscos') {
+            openPizzaModal(p);
+        } else if (p.tipo === 'combo') {
+            openComboModal(p);
+        } else {
+            agregarAlCarritoSimple(p);
+        }
+    }
+
+    function openPizzaModal(p) {
+        currentPizza = p;
+        document.getElementById("modal-title").innerText = p.nombre;
+        document.getElementById("pizza-modal").style.display = "flex";
+        document.getElementById("pizza-crust").checked = false; 
+        
+        const secondHalfSelect = document.getElementById("second-half");
+        secondHalfSelect.innerHTML = PRODUCTOS
+            .filter(x => (x.tipo === 'pizza' || x.tipo === 'mariscos') && x.id !== p.id)
+            .map(x => `<option value="${x.nombre}">${x.nombre}</option>`).join("");
+            
+        updateModalPrice();
+    }
+
+    function closeModal() {
+        document.getElementById("pizza-modal").style.display = "none";
+        document.getElementById("pizza-config").value = "completa";
+        document.getElementById("mitades-select").style.display = "none";
+    }
+
+    function toggleMitades() {
+        const config = document.getElementById("pizza-config").value;
+        document.getElementById("mitades-select").style.display = config === "mitad" ? "block" : "none";
+        updateModalPrice(); 
+    }
+
+    function updateModalPrice() {
+        const sizeSelect = document.getElementById("pizza-size");
+        const index = sizeSelect.selectedIndex; 
+        
+        const preciosNormales = [105, 155, 195, 240];
+        const preciosCamaron = [130, 180, 250, 310];
+        const preciosMarYTierra = [135, 190, 260, 320];
+        
+        const costosOrillaQueso = [20, 30, 40, 50];    
+        const costosExtraMitadMenu = [10, 13, 16, 18];  
+        
+        let priceBase = preciosNormales[index];
+
+        if (currentPizza) {
+            if (currentPizza.id === 113) {          
+                priceBase = preciosCamaron[index];
+            } else if (currentPizza.id === 114) {   
+                priceBase = preciosMarYTierra[index];
+            }
+        }
+
+        for(let i = 0; i < sizeSelect.options.length; i++) {
+            let pM = preciosNormales[i];
+            let labelCompleto = "";
+            
+            if (i === 0) labelCompleto = "Chica (6 reb)";
+            if (i === 1) labelCompleto = "Mediana (8 reb)";
+            if (i === 2) labelCompleto = "Grande (10 reb)";
+            if (i === 3) labelCompleto = "Familiar (12 reb)";
+
+            if (currentPizza.id === 113) pM = preciosCamaron[i];
+            if (currentPizza.id === 114) pM = preciosMarYTierra[i];
+            
+            sizeSelect.options[i].text = `${labelCompleto} - $${pM}`;
+        }
+
+        let adicionales = 0;
+        
+        const conOrilla = document.getElementById("pizza-crust").checked;
+        if (conOrilla) {
+            adicionales += costosOrillaQueso[index];
+        }
+        document.getElementById("label-crust").innerText = `¿Agregar Orilla Rellena de Queso? (+$${costosOrillaQueso[index]})`;
+
+        const config = document.getElementById("pizza-config").value;
+        if (config === "mitad") {
+            adicionales += costosExtraMitadMenu[index];
+            document.getElementById("label-extra-mitad").innerText = `* Mitad/Mitad o Ingrediente Extra lleva costo de $${costosExtraMitadMenu[index]}.`;
+        } else {
+            document.getElementById("label-extra-mitad").innerText = "";
+        }
+
+        let totalFinal = priceBase + adicionales;
+        document.getElementById("modal-total").innerText = totalFinal;
+    }
+
+    function confirmarPizza() {
+        const sizeSelect = document.getElementById("pizza-size");
+        const sizeText = sizeSelect.options[sizeSelect.selectedIndex].text.split(" - ")[0]; 
+        const config = document.getElementById("pizza-config").value;
+        const notes = document.getElementById("pizza-notes").value;
+        const conOrilla = document.getElementById("pizza-crust").checked;
+        const price = parseInt(document.getElementById("modal-total").innerText);
+        
+        let nombreFinal = `${currentPizza.nombre} (${sizeText})`;
+        if (config === "mitad") {
+            const m2 = document.getElementById("second-half").value;
+            nombreFinal = `Mitad ${currentPizza.nombre} / Mitad ${m2} (${sizeText})`;
+        }
+        
+        if (conOrilla) {
+            nombreFinal += ` [Con Orilla Rellena]`;
+        }
+
+        const item = { id: Date.now(), nombre: nombreFinal, precio: price, qty: 1, info: notes ? `Nota: ${notes}` : "", imagen: currentPizza.imagen };
+        carrito.push(item);
+        actualizarInterfaz();
+        closeModal();
+        toggleDrawer();
+    }
+
+    function openComboModal(combo) {
+        currentCombo = combo;
+        document.getElementById("combo-modal-title").innerText = combo.nombre;
+        document.getElementById("combo-modal-desc").innerText = combo.info;
+        document.getElementById("combo-notes").value = "";
+        
+        const crustCheckbox = document.getElementById("combo-crust");
+        crustCheckbox.checked = false;
+
+        const container = document.getElementById("combo-flavors-container");
+        const crustContainer = document.getElementById("combo-crust-container");
+        container.innerHTML = ""; 
+
+        const especialidadesPermitidas = PRODUCTOS.filter(x => x.tipo === 'pizza');
+        const opcionesHtmlCompleto = especialidadesPermitidas.map(x => `<option value="${x.nombre}">${x.nombre}</option>`).join("");
+        
+        if (combo.id === 201) {
+            crustContainer.style.display = "none"; 
+            container.innerHTML = `
+                <div class="option-group">
+                    <label>Primer Sabor de Pizza Cuadrada (Excepto Mariscos):</label>
+                    <select class="combo-flavor-select">${opcionesHtmlCompleto}</select>
+                </div>
+                <div class="option-group">
+                    <label>Segundo Sabor (Excepto Mariscos):</label>
+                    <select class="combo-flavor-select">${opcionesHtmlCompleto}</select>
+                </div>`;
+        } 
+        else if (combo.id === 202) {
+            crustContainer.style.display = "none"; 
+            container.innerHTML = `
+                <div class="option-group"><label>Sabor 1:</label><select class="combo-flavor-select">${opcionesHtmlCompleto}</select></div>
+                <div class="option-group"><label>Sabor 2:</label><select class="combo-flavor-select">${opcionesHtmlCompleto}</select></div>
+                <div class="option-group"><label>Sabor 3 (Opcional):</label><select class="combo-flavor-select"><option value="">-- Ninguno --</option>${opcionesHtmlCompleto}</select></div>
+                <div class="option-group"><label>Sabor 4 (Opcional):</label><select class="combo-flavor-select"><option value="">-- Ninguno --</option>${opcionesHtmlCompleto}</select></div>`;
+        } 
+        else if (combo.id === 203) {
+            crustContainer.style.display = "flex";
+            document.getElementById("combo-label-crust").innerText = "¿Desea agregar orilla rellena de queso por $40 (Pizza Gde)?";
+            container.innerHTML = `
+                <div class="option-group">
+                    <label>Selecciona el sabor (Hawaiana o Peperoni):</label>
+                    <select class="combo-flavor-select">
+                        <option value="Hawaiana">Pizza Hawaiana</option>
+                        <option value="Peperoni">Pizza Pepperoni</option>
+                    </select>
+                </div>`;
+        } 
+        else if (combo.id === 204) {
+            crustContainer.style.display = "flex";
+            document.getElementById("combo-label-crust").innerText = "¿Desea agregar orilla rellena de queso por $50 (Pizza Fam)?";
+            container.innerHTML = `
+                <div class="option-group">
+                    <label>Selecciona Cualquier Especialidad (Excepto Mariscos):</label>
+                    <select class="combo-flavor-select">${opcionesHtmlCompleto}</select>
+                </div>`;
+        }
+
+        updateComboPrice();
+        document.getElementById("combo-modal").style.display = "flex";
+    }
+
+    function updateComboPrice() {
+        if (!currentCombo) return;
+        let totalCombo = currentCombo.precio;
+        const conOrilla = document.getElementById("combo-crust").checked;
+
+        if (conOrilla) {
+            if (currentCombo.id === 203) totalCombo += 40; 
+            if (currentCombo.id === 204) totalCombo += 50; 
+        }
+
+        document.getElementById("combo-modal-total").innerText = totalCombo;
+    }
+
+    function closeComboModal() {
+        document.getElementById("combo-modal").style.display = "none";
+    }
+
+    function confirmarCombo() {
+        const selectores = document.querySelectorAll(".combo-flavor-select");
+        let saboresElegidos = [];
+        
+        selectores.forEach(select => {
+            if(select.value) saboresElegidos.push(select.value);
+        });
+
+        const refresco = document.getElementById("combo-soda").value;
+        const notas = document.getElementById("combo-notes").value;
+        const conOrilla = document.getElementById("combo-crust").checked;
+        const precioFinal = parseInt(document.getElementById("combo-modal-total").innerText);
+        
+        let detalleSabores = saboresElegidos.join(" con ");
+        let nombreCarrito = `${currentCombo.nombre} [Sabores: ${detalleSabores}]`;
+        
+        if (conOrilla && (currentCombo.id === 203 || currentCombo.id === 204)) {
+            nombreCarrito += " [Con Orilla Rellena]";
+        }
+        
+        nombreCarrito += ` + Refresco: ${refresco}`;
+
+        const item = { id: Date.now(), nombre: nombreCarrito, precio: precioFinal, qty: 1, info: notes ? `Nota: ${notes}` : "", imagen: currentCombo.imagen };
+        carrito.push(item);
+        actualizarInterfaz();
+        closeComboModal();
+        toggleDrawer();
+    }
+
+    function agregarAlCarritoSimple(p) {
+        const existe = carrito.find(x => x.nombre === p.nombre);
+        if (existe) { existe.qty++; }
+        else { carrito.push({ ...p, qty: 1 }); }
+        actualizarInterfaz();
+        toggleDrawer();
+    }
+
+    function actualizarInterfaz() {
+      const count = carrito.reduce((sum, i) => sum + i.qty, 0);
+      document.getElementById("cart-count").innerText = count;
+      renderDrawer();
+    }
+
+    /* CORREGIDO: Se reemplazaron las llamadas erróneas ${var(...)} por colores directos de CSS */
+    function renderDrawer() {
+      const body = document.getElementById("drawer-body");
+      let total = 0;
+      body.innerHTML = carrito.map(item => {
+        total += item.precio * item.qty;
+        return `
+          <div style="display:flex; gap:15px; margin-bottom:20px; align-items:center; border-bottom:1px solid #444; padding-bottom:15px;">
+            <img src="${item.imagen}" style="width:70px; height:70px; object-fit:cover; border-radius:8px; border:2px solid #444;">
+            <div style="flex-grow:1;">
+                <div style="font-weight:700; font-size:15px; color:#ffffff;">${item.nombre}</div>
+                <div style="font-size:13px; color:#bbb;">$${item.precio} x ${item.qty}</div>
+            </div>
+            <button onclick="eliminar(${item.id})" style="color:#ff4444; background:none; border:none; font-size:18px; cursor:pointer;">✕</button>
+          </div>
+        `;
+      }).join("");
+      document.getElementById("cart-total").innerText = `$${total}`;
+    }
+
+    function eliminar(id) {
+        carrito = carrito.filter(i => i.id !== id);
+        actualizarInterfaz();
+    }
+
+    function toggleDrawer() {
+      const d = document.getElementById("cart-drawer");
+      const o = document.getElementById("drawer-overlay");
+      d.classList.toggle("open");
+      o.style.display = d.classList.contains("open") ? "block" : "none";
+    }
+
+    function filtrar(cat, btn) {
+      document.querySelectorAll(".filter-btn").forEach(b => b.classList.remove("active"));
+      btn.classList.add("active");
+      renderProducts(cat === 'todos' ? PRODUCTOS : PRODUCTOS.filter(p => p.cat === cat));
+    }
+
+    function pedirAhora(id) {
+        const p = PRODUCTOS.find(x => x.id === id);
+        if (p.tipo === 'pizza' || p.tipo === 'mariscos') {
+            openPizzaModal(p);
+        } else if (p.tipo === 'combo') {
+            openComboModal(p);
+        } else {
+            const msj = encodeURIComponent(`¡Hola! Quiero pedir ahora: *${p.nombre}* ($${p.precio})`);
+            window.open(`https://wa.me/${WA_NUMBER}?text=${msj}`, "_blank");
+        }
+    }
+
+    function enviarPedido() {
+      if (carrito.length === 0) return;
+      let msj = " *Hola Me Gustaria Ordenar Este Pedido - DELY'S PIZZA*\n\n";
+      let total = 0;
+      carrito.forEach(i => {
+        msj += `• *${i.nombre}* x${i.qty}\n   ${i.info ? i.info : ''}\n   Subtotal: $${i.precio * i.qty}\n\n`;
+        total += i.precio * i.qty;
+      });
+      msj += `*TOTAL A PAGAR: $${total}*`;
+      msj += "\n\n*Por favor confirme el tiempo de entrega.*";
+      window.open(`https://wa.me/${WA_NUMBER}?text=${encodeURIComponent(msj)}`, "_blank");
+    }
+
+    renderProducts(PRODUCTOS);
+  </script>
+</body>
+</html>
