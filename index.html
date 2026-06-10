@@ -353,7 +353,7 @@
         
         const conOrilla = document.getElementById("pizza-crust").checked;
         if (conOrilla) {
-            adicionales += costosOrillaQueso[index];
+            adionales += costosOrillaQueso[index];
         }
         document.getElementById("label-crust").innerText = `¿Agregar Orilla Rellena de Queso? (+$${costosOrillaQueso[index]})`;
 
@@ -478,7 +478,9 @@
         let saboresElegidos = [];
         
         selectores.forEach(select => {
-            if(select.value) saboresElegidos.push(select.value);
+            if(select.value && select.value !== "") { 
+                saboresElegidos.push(select.value);
+            }
         });
 
         const refresco = document.getElementById("combo-soda").value;
@@ -495,7 +497,7 @@
         
         nombreCarrito += ` + Refresco: ${refresco}`;
 
-        const item = { id: Date.now(), nombre: nombreCarrito, precio: precioFinal, qty: 1, info: notes ? `Nota: ${notes}` : "", imagen: currentCombo.imagen };
+        const item = { id: Date.now(), nombre: nombreCarrito, precio: precioFinal, qty: 1, info: notas ? `Nota: ${notes}` : "", imagen: currentCombo.imagen };
         carrito.push(item);
         actualizarInterfaz();
         closeComboModal();
@@ -516,7 +518,6 @@
       renderDrawer();
     }
 
-    /* CORREGIDO: Se reemplazaron las llamadas erróneas ${var(...)} por colores directos de CSS */
     function renderDrawer() {
       const body = document.getElementById("drawer-body");
       let total = 0;
