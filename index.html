@@ -90,6 +90,47 @@
     footer { background: var(--dark-bg); color: #bbb; padding: 4rem 2rem; text-align: center; border-top: 2px solid var(--text-orange); }
     footer h3 { font-family: var(--font-display); color: var(--white); text-transform: uppercase; font-size: 24px; margin-bottom: 1rem; }
     footer p { font-size: 14px; margin-bottom: 0.5rem; }
+
+@media (max-width: 600px) {
+  header {
+    grid-template-columns: auto auto;
+    justify-content: space-between;
+    gap: 20px;
+    padding: 0 18px;
+    height: 72px;
+  }
+
+  header > div:first-child {
+    display: none;
+  }
+
+  .logo {
+    font-size: 30px;
+  }
+
+  .cart-btn {
+    padding: 8px 12px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .filters {
+    top: 72px;
+  }
+
+  .wa-float {
+    width: 54px;
+    height: 54px;
+    right: 16px;
+    bottom: 85px;
+  }
+
+  .wa-float svg {
+    width: 28px;
+    height: 28px;
+  }
+}
+    
   </style>
 </head>
 <body>
